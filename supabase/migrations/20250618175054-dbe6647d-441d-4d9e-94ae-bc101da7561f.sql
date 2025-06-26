@@ -1,5 +1,4 @@
-
--- Create user profiles table
+-profile table
 CREATE TABLE public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -15,7 +14,7 @@ CREATE TABLE public.profiles (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create crops table
+-crops table
 CREATE TABLE public.crops (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   farmer_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -37,8 +36,7 @@ CREATE TABLE public.crops (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
--- Create orders table
+-orders table
 CREATE TABLE public.orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   crop_id UUID NOT NULL REFERENCES public.crops(id) ON DELETE CASCADE,
@@ -55,8 +53,7 @@ CREATE TABLE public.orders (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
--- Create transport providers table
+-Create transport providers table
 CREATE TABLE public.transport_providers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   provider_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -72,8 +69,7 @@ CREATE TABLE public.transport_providers (
   completed_trips INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
--- Create ratings table
+-Create ratings table
 CREATE TABLE public.ratings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   crop_id UUID NOT NULL REFERENCES public.crops(id) ON DELETE CASCADE,
@@ -84,8 +80,7 @@ CREATE TABLE public.ratings (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(crop_id, user_id)
 );
-
--- Create comments table
+-Create comments table
 CREATE TABLE public.comments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   crop_id UUID NOT NULL REFERENCES public.crops(id) ON DELETE CASCADE,
@@ -94,45 +89,37 @@ CREATE TABLE public.comments (
   content TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
--- Enable Row Level Security on all tables
+-Enable Row Level Security on all tables
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.crops ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transport_providers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ratings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
-
--- Create RLS policies for profiles
+-Create RLS policies for profiles
 CREATE POLICY "Users can view all profiles" ON public.profiles FOR SELECT USING (true);
 CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 CREATE POLICY "Users can insert their own profile" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
-
--- Create RLS policies for crops
+-Create RLS policies for crops
 CREATE POLICY "Anyone can view available crops" ON public.crops FOR SELECT USING (true);
 CREATE POLICY "Farmers can insert their own crops" ON public.crops FOR INSERT WITH CHECK (auth.uid() = farmer_id);
 CREATE POLICY "Farmers can update their own crops" ON public.crops FOR UPDATE USING (auth.uid() = farmer_id);
 CREATE POLICY "Farmers can delete their own crops" ON public.crops FOR DELETE USING (auth.uid() = farmer_id);
-
--- Create RLS policies for orders
+-Create RLS policies for orders
 CREATE POLICY "Users can view their own orders" ON public.orders FOR SELECT USING (auth.uid() = consumer_id OR auth.uid() = farmer_id);
 CREATE POLICY "Consumers can create orders" ON public.orders FOR INSERT WITH CHECK (auth.uid() = consumer_id);
 CREATE POLICY "Order participants can update orders" ON public.orders FOR UPDATE USING (auth.uid() = consumer_id OR auth.uid() = farmer_id);
-
--- Create RLS policies for transport providers
+-Create RLS policies for transport providers
 CREATE POLICY "Anyone can view transport providers" ON public.transport_providers FOR SELECT USING (true);
 CREATE POLICY "Users can create transport listings" ON public.transport_providers FOR INSERT WITH CHECK (auth.uid() = provider_id);
 CREATE POLICY "Providers can update their own listings" ON public.transport_providers FOR UPDATE USING (auth.uid() = provider_id);
-
--- Create RLS policies for ratings
+-Create RLS policies for ratings
 CREATE POLICY "Anyone can view ratings" ON public.ratings FOR SELECT USING (true);
 CREATE POLICY "Users can create ratings" ON public.ratings FOR INSERT WITH CHECK (auth.uid() = user_id);
-
--- Create RLS policies for comments
+-Create RLS policies for comments
 CREATE POLICY "Anyone can view comments" ON public.comments FOR SELECT USING (true);
 CREATE POLICY "Users can create comments" ON public.comments FOR INSERT WITH CHECK (auth.uid() = user_id);
-
--- Create trigger to automatically create profile when user signs up
+-Create trigger to automatically create profile when user signs up
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
