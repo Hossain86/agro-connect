@@ -68,6 +68,21 @@ const PostCrop = () => {
     setImageUrls(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    const base64 = reader.result as string;
+    if (base64 && !imageUrls.includes(base64)) {
+      setImageUrls((prev) => [...prev, base64]);
+    }
+  };
+  reader.readAsDataURL(file);
+};
+
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -292,37 +307,52 @@ const PostCrop = () => {
 
             {/* Images */}
             <div>
+              
               <Label>Crop Images</Label>
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <Input
-                    value={newImageUrl}
-                    onChange={(e) => setNewImageUrl(e.target.value)}
-                    placeholder="Enter image URL (e.g., from Unsplash)"
-                  />
-                  <Button type="button" onClick={handleAddImage} variant="outline">
-                    <Upload className="h-4 w-4" />
-                  </Button>
-                </div>
-                {imageUrls.length > 0 && (
-                  <div className="grid grid-cols-2 gap-2">
-                    {imageUrls.map((url, index) => (
-                      <div key={index} className="relative">
-                        <img src={url} alt={`Crop ${index + 1}`} className="w-full h-24 object-cover rounded" />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          className="absolute top-1 right-1 h-6 w-6 p-0"
-                          onClick={() => handleRemoveImage(index)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+<div className="space-y-2">
+  <div className="flex gap-2">
+    <Input
+      value={newImageUrl}
+      onChange={(e) => setNewImageUrl(e.target.value)}
+      placeholder="Enter image URL (e.g., from Unsplash)"
+    />
+    <Button type="button" onClick={handleAddImage} variant="outline">
+      <Upload className="h-4 w-4" />
+    </Button>
+  </div>
+
+  {/* 👇 New: Image file upload */}
+  <div className="flex gap-2 items-center">
+    <Label className="text-sm text-muted-foreground">Or upload an image file:</Label>
+    <Input
+      type="file"
+      accept="image/*"
+      onChange={handleImageFileChange}
+      className="cursor-pointer"
+    />
+  </div>
+
+  {/* Existing preview grid */}
+  {imageUrls.length > 0 && (
+    <div className="grid grid-cols-2 gap-2">
+      {imageUrls.map((url, index) => (
+        <div key={index} className="relative">
+          <img src={url} alt={`Crop ${index + 1}`} className="w-full h-24 object-cover rounded" />
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            className="absolute top-1 right-1 h-6 w-6 p-0"
+            onClick={() => handleRemoveImage(index)}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
             </div>
 
             {/* Organic Checkbox */}
